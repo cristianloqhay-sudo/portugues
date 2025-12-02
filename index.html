@@ -1,40 +1,754 @@
 <!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello, World!</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+      <h1 class="title">Hello World! </h1>
+      <p id="currentTime"></p>
+      <script src="script.js"></script>
+  </body>
+</html><!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Léxico Portugués - Tu Guía Diaria</title>
+    <title>Léxico Portugués Interactivo - Tu Guía Diaria</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
-        body { font-family: 'Roboto', sans-serif; }
-        /* Custom scrollbar to match design requirements */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #DAA520; }
+        /* Custom Font Imports if needed, using system fonts for performance */
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         
-        /* 3D Transform Utilities */
+        /* Card Flip Animation */
         .perspective-1000 { perspective: 1000px; }
         .transform-style-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
         .rotate-y-180 { transform: rotateY(180deg); }
+        
+        /* Custom Scrollbar for better aesthetics */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        /* SCROLLBAR ACCENT COLOR: Yellow/Gold */
+        ::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #DAA520; }
+
+        /* Chart Container Strict Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Base Social Button Styling */
+        .social-btn {
+            @apply flex items-center justify-center p-3 rounded-lg text-white transition-all duration-200 hover:scale-[1.05] shadow-md;
+        }
+        /* Specific styling for logo-only buttons */
+        .social-logo-btn {
+            @apply w-12 h-12 flex-none; /* Fixed size for clean logo display */
+        }
+
+        /* Quiz Specific Styles */
+        /* Updated quiz-option to look like a proper button */
+        .quiz-option {
+            @apply w-full text-left p-3 mb-3 bg-gray-100 rounded-lg cursor-pointer transition-colors duration-200 shadow-sm hover:bg-gray-200 border-2 border-transparent;
+        }
+        .quiz-option.selected {
+            /* ACCENT COLOR: Yellow/Gold */
+            @apply ring-2 ring-offset-2 ring-[#FFD700] bg-[#FFFBEB] border-[#FFD700];
+        }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
+    <!-- Chosen Palette: Tropical Green & Yellow Gold -->
+    <!-- Background: #F7FFF7 (Very Light Green/White) -->
+    <!-- Primary: #006400 (Deep Green / Primary) -->
+    <!-- Secondary: #3CB371 (Medium Sea Green) -->
+    <!-- Accent: #FFD700 (Yellow Gold) -->
 </head>
-<body class="bg-[#F7FFF7] text-gray-800 h-screen overflow-hidden">
-    <div id="root" class="h-full"></div>
-<script type="module" src="/index.tsx"></script>
+<body class="bg-[#F7FFF7] text-gray-800 h-screen overflow-hidden flex flex-col md:flex-row">
+
+    <!-- Application Structure Plan: 
+         1. Sidebar Navigation: Persistent access to all learning modules (Greetings, Numbers, etc.).
+         2. Main Content Area: Dynamic switching based on selection.
+         3. Dashboard (Home): High-level overview using a Chart to show course composition.
+         4. Learning Modules: Grid layouts of interactive "Flip Cards" for vocabulary.
+         5. Footer/CTA: Persistent encouragement to join the community.
+         Rationale: This structure breaks the long PDF into digestible, interactive chunks, preventing cognitive overload.
+    -->
+
+    <!-- Mobile Header -->
+    <header class="md:hidden bg-[#006400] text-white p-4 flex justify-between items-center z-20 shadow-md">
+        <h1 class="text-xl font-bold">🇧🇷 Léxico Portugués</h1>
+        <button id="mobile-menu-btn" class="text-white focus:outline-none">
+            <span class="text-2xl">☰</span>
+        </button>
+    </header>
+
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar" class="transform -translate-x-full md:translate-x-0 transition-transform duration-300 fixed md:relative z-10 w-64 h-full bg-[#006400] text-white flex flex-col shadow-xl">
+        <div class="p-6 border-b border-[#3CB371]/30 hidden md:block">
+            <h1 class="text-2xl font-bold tracking-wide">🇧🇷 Portugués<br><span class="text-sm font-normal text-[#C5D0E3]">para el Uso Diario</span></h1>
+        </div>
+        
+        <!-- REMOVED: Start button as per user request -->
+
+        <div class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <!-- PRIMARY GREEN: #006400 (Dark Green) -->
+                <!-- SECONDARY GREEN: #3CB371 (Medium Sea Green) -->
+                <!-- ACCENT YELLOW: #FFD700 (Yellow Gold) -->
+                <li><button onclick="app.navigate('home')" class="nav-item w-full text-left px-6 py-3 hover:bg-[#1A803B] transition-colors bg-[#1A803B] font-semibold border-l-4 border-[#FFD700]" data-target="home">🏠 Inicio / Dashboard</button></li>
+                <li><button onclick="app.navigate('saludos')" class="nav-item w-full text-left px-6 py-3 hover:bg-[#1A803B] transition-colors border-l-4 border-transparent" data-target="saludos">👋 Saludos y Básicos</button></li>
+                <li><button onclick="app.navigate('presentacion')" class="nav-item w-full text-left px-6 py-3 hover:bg-[#1A803B] transition-colors border-l-4 border-transparent" data-target="presentacion">🤝 Presentaciones</button></li>
+                <li><button onclick="app.navigate('numeros')" class="nav-item w-full text-left px-6 py-3 hover:bg-[#1A803B] transition-colors border-l-4 border-transparent" data-target="numeros">🔢 Números (1-10)</button></li>
+                <li><button onclick="app.navigate('colores')" class="nav-item w-full text-left px-6 py-3 hover:bg-[#1A803B] transition-colors border-l-4 border-transparent" data-target="colores">🎨 Colores</button></li>
+                <li><button onclick="app.navigate('animales')" class="nav-item w-full text-left px-6 py-3 hover:bg-[#1A803B] transition-colors border-l-4 border-transparent" data-target="animales">🐶 Animales y Casa</button></li>
+                <li><button onclick="app.navigate('viajes')" class="nav-item w-full text-left px-6 py-3 hover:bg-[#1A803B] transition-colors border-l-4 border-transparent" data-target="viajes">✈️ Viajes y Salud</button></li>
+                <li><button onclick="app.navigate('clima')" class="nav-item w-full text-left px-6 py-3 hover:bg-[#1A803B] transition-colors border-l-4 border-transparent" data-target="clima">☀️ Clima y Tiempo</button></li>
+                <!-- QUIZ NAVIGATION ITEM ADDED -->
+                <li><button onclick="app.navigate('quiz')" class="nav-item w-full text-left px-6 py-3 hover:bg-[#1A803B] transition-colors border-l-4 border-transparent" data-target="quiz">🧠 Test de Vocabulario</button></li>
+            </ul>
+        </div>
+
+        <div class="p-6 bg-[#185331] mt-auto">
+            <p class="text-xs text-[#C5D0E3] mb-2">Progreso de sesión</p>
+            <div class="w-full bg-[#3CB371] rounded-full h-2.5">
+                <div id="progress-bar" class="bg-[#FFD700] h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+            <p class="text-xs text-center mt-2 text-[#C5D0E3]" id="progress-text">0/7 Temas explorados</p>
+        </div>
+    </nav>
+    <!-- End Sidebar Navigation -->
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto relative p-4 md:p-8" id="main-content">
+        
+        <!-- View: Home / Dashboard -->
+        <section id="view-home" class="max-w-4xl mx-auto animate-fade-in">
+            <div class="mb-8 text-center md:text-left">
+                <h2 class="text-3xl font-bold text-[#006400] mb-2">Bem-vindo! ¡Bienvenido!</h2>
+                <p class="text-gray-600">Esta aplicación interactiva está diseñada para ayudarte a dominar el vocabulario **portugués** esencial. Explora las categorías en el menú para comenzar.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Info Card -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-[#FFD700]">
+                    <h3 class="font-bold text-xl mb-4 text-[#006400]">Cómo usar esta App</h3>
+                    <ul class="space-y-3 text-sm text-gray-700">
+                        <li class="flex items-start"><span class="mr-2 text-[#FFD700]">➤</span> Navega por los temas usando el menú lateral.</li>
+                        <li class="flex items-start"><span class="mr-2 text-[#FFD700]">➤</span> <strong>Haz clic en las tarjetas</strong> para revelar la frase de ejemplo.</li>
+                        <li class="flex items-start"><span class="mr-2 text-[#FFD700]">➤</span> Practica en voz alta usando la guía fonética simplificada.</li>
+                        <li class="flex items-start font-bold text-[#FFD700]"><span class="mr-2 text-[#FFD700]">➤</span> ¡Haz el **Test de Vocabulario** para saber tu nivel de portugués!</li>
+                    </ul>
+                </div>
+
+                <!-- Visualization: Content Distribution -->
+                <!-- Visualization & Content Choices: 
+                     Goal: Organize/Inform - Show the user the scope of learning material.
+                     Method: Doughnut Chart (Chart.js).
+                     Interaction: Hover to see topic counts.
+                     Justification: Provides a quick visual summary of the curriculum balance without reading a list.
+                -->
+                <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center justify-center">
+                    <h3 class="font-bold text-lg mb-2 text-[#006400]">Composición del Vocabulario</h3>
+                    <div class="chart-container">
+                        <canvas id="contentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action Banner (Updated section: logos and names) -->
+            <div class="bg-[#E5E7EB] rounded-xl p-6 text-center shadow-inner">
+                <h3 class="text-[#006400] font-bold text-lg mb-2">¡Únete a la Comunidad y Sigue Aprendiendo!</h3>
+                <p class="text-sm text-[#374151] mb-6">Síguenos en redes para más tips y contenido gratuito, o empieza tu curso digital ahora.</p>
+                
+                <div class="flex flex-wrap justify-center gap-6 mb-4">
+                    
+                    <div class="flex flex-col items-center">
+                        <!-- Instagram Logo Button (Unicode Icon: Camera) -->
+                        <a href="https://www.instagram.com/lexigo2.0/" target="_blank" class="social-btn social-logo-btn bg-pink-600" onclick="return true;">
+                            <span class="text-2xl">📷</span>
+                        </a>
+                        <span class="text-xs mt-1 font-semibold text-gray-700">Instagram</span>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <!-- Facebook Logo Button (Unicode Icon: Thumbs Up) -->
+                        <a href="https://www.facebook.com/profile.php?id=61583705050960" target="_blank" class="social-btn social-logo-btn bg-blue-600" onclick="return true;">
+                            <span class="text-2xl">👍</span>
+                        </a>
+                        <span class="text-xs mt-1 font-semibold text-gray-700">Facebook</span>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <!-- TikTok Logo Button (Unicode Icon: Music Note) -->
+                        <a href="https://www.tiktok.com/@lexigo2.0" target="_blank" class="social-btn social-logo-btn bg-gray-800" onclick="return true;">
+                            <span class="text-2xl">🎵</span>
+                        </a>
+                        <span class="text-xs mt-1 font-semibold text-gray-700">TikTok</span>
+                    </div>
+                </div>
+
+                <!-- Digital Course Button (Full Width, Accent Color, with text) -->
+                <a href="https://go.hotmart.com/B103170175D" target="_blank" class="social-btn bg-[#FFD700] text-[#006400] w-full text-lg font-bold hover:bg-[#DAA520] hover:text-white mt-4" onclick="return true;">
+                    <span class="text-xl mr-2">📚</span>
+                    Iniciar Curso Digital
+                </a>
+            </div>
+        </section>
+
+        <!-- View: Cards Template (Content injected via JS) -->
+        <section id="view-cards" class="hidden max-w-5xl mx-auto">
+            <div class="mb-6 border-b border-gray-200 pb-4">
+                <h2 id="section-title" class="text-3xl font-bold text-[#006400]">Título Sección</h2>
+                <p id="section-desc" class="text-gray-600 mt-2">Descripción de la sección.</p>
+            </div>
+            
+            <div id="cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Cards injected here -->
+            </div>
+        </section>
+
+        <!-- NEW View: Quiz -->
+        <section id="view-quiz" class="hidden max-w-2xl mx-auto p-4 bg-white rounded-xl shadow-lg border-t-4 border-[#006400]">
+            <h2 class="text-3xl font-bold text-[#006400] mb-4 text-center">🧠 Test de Vocabulario</h2>
+            <div id="quiz-container">
+                <!-- Quiz content (question/options/results) injected here -->
+            </div>
+            <div class="flex justify-between items-center mt-6">
+                <p id="quiz-status" class="text-sm font-semibold text-gray-600"></p>
+                <!-- NOTE: The Next/Results button is now hidden and advance happens automatically -->
+                <button id="quiz-next-btn" class="hidden bg-[#006400] text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-[#3CB371] transition-colors">
+                    Siguiente Pregunta
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Overlay for mobile menu -->
+    <div id="overlay" class="fixed inset-0 bg-black opacity-50 z-0 hidden md:hidden"></div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Data Store: Portuguese (it) -> Spanish (es)
+
+        const data = {
+            saludos: {
+                title: "Saudações e Expressões Básicas",
+                desc: "'Olá' e 'Adeus' são essenciais. 'Por favor' e 'Obrigado/a' são cortesías fundamentales.",
+                items: [
+                    { it: "Olá", pron: "olá", es: "Hola", context: "Saludo común", fraseIt: "Olá, tudo bem com você?", fraseEs: "Hola, ¿todo bien contigo?", frasePron: "olá, túdu bem kon vosé" },
+                    { it: "Adeus", pron: "adéush", es: "Adiós", context: "Despedida", fraseIt: "Adeus, até amanhã!", fraseEs: "Adiós, ¡hasta mañana!", frasePron: "adéush, até amanyán" },
+                    { it: "Bom dia", pron: "bong yía", es: "Buenos días", context: "Formal (Mañana)", fraseIt: "Bom dia, eu gostaria de um café.", fraseEs: "Buenos días, me gustaría un café.", frasePron: "bong yía, éu gostaría ji un kafé" },
+                    { it: "Boa tarde", pron: "bôa tárji", es: "Buenas tardes", context: "Formal (Tarde/Noche)", fraseIt: "Boa tarde, esta mesa está livre?", fraseEs: "Buenas tardes, ¿está libre esta mesa?", frasePron: "bôa tárji, esta meza está lívri?" },
+                    { it: "Obrigado/a", pron: "obrigádu/a", es: "Gracias", context: "Cortesía essencial (Obrigado para hombre, Obrigada para mujer)", fraseIt: "Muito obrigado pela sua ajuda.", fraseEs: "Muchas gracias por su ayuda.", frasePron: "múitu obrigádu péla súa ayúda" },
+                    { it: "Por favor", pron: "por favôr", es: "Por favor", context: "Para pedir algo", fraseIt: "Posso ver o cardápio, por favor?", fraseEs: "¿Puedo ver el menú, por favor?", frasePron: "pósu ver u cardápiu, por favôr?" },
+                    { it: "Com licença", pron: "kon lisénsa", es: "Disculpa / Disculpe", context: "Para llamar la atención o pasar", fraseIt: "Com licença, onde é a estação?", fraseEs: "Disculpe, ¿dónde está la estación?", frasePron: "kon lisénsa, óndji é a estazón?" },
+                    { it: "Como está?", pron: "kómu está", es: "¿Cómo está?", context: "Pregunta común", fraseIt: "Estou bem, e o senhor/a?", fraseEs: "Estoy bien, ¿y usted?", frasePron: "estou beng, i u senyor/a?" }
+                ]
+            },
+            presentacion: {
+                title: "Apresentações Pessoais",
+                desc: "Frases chave para falar de você e conhecer a outros.",
+                items: [
+                    { it: "Meu nome é...", pron: "meu nómi eh", es: "Mi nombre es...", context: "Tu nombre", fraseIt: "Meu nome é João, e sou estudante.", fraseEs: "Mi nombre es João, y soy estudiante.", frasePron: "meu nómi eh zhoáng, i sou estuzhangtchi" },
+                    { it: "Eu sou de...", pron: "éu sou ji", es: "Soy de...", context: "Tu origen", fraseIt: "Eu sou do México, mas moro aqui.", fraseEs: "Soy de México, pero vivo aquí.", frasePron: "éu sou du méshicu, ma móru akí" },
+                    { it: "Eu moro em...", pron: "éu móru én", es: "Vivo en...", context: "Tu residencia", fraseIt: "Eu moro em um apartamento pequeno.", fraseEs: "Vivo en un apartamento pequeño.", frasePron: "éu móru én un apartaméntchi pekénu" },
+                    { it: "Quantos anos você tem?", pron: "kuántus ánus vosé ten", es: "¿Cuántos años tienes?", context: "Pregunta de idade", fraseIt: "Eu tenho vinte e cinco anos.", fraseEs: "Tengo veinticinco años.", frasePron: "éu tényu víntchi i síngku ánus" },
+                    { it: "Qual é o seu trabalho?", pron: "kual é u seu trabályu", es: "¿Cuál es tu trabajo?", context: "Pregunta de profissão", fraseIt: "Eu sou professor na escola local.", fraseEs: "Soy profesor en la escuela local.", frasePron: "éu sou proféssor na éskola lokál" }
+                ]
+            },
+            numeros: {
+                title: "Números (1-10)",
+                desc: "Essenciais para preços, horas e quantidades.",
+                items: [
+                    { it: "Um", pron: "ung", es: "Uno", context: "Para contar", fraseIt: "Preciso de um quilo de maçãs.", fraseEs: "Necesito un kilo de manzanas.", frasePron: "presízu ji un kílu ji massans" },
+                    { it: "Dois", pron: "doish", es: "Dos", context: "Para contar", fraseIt: "Eles têm dois carros.", fraseEs: "Ellos tienen dos coches.", frasePron: "élis tein doish kárrush" },
+                    { it: "Três", pron: "tresh", es: "Tres", context: "Para contar", fraseIt: "O trem chega em três minutos.", fraseEs: "El tren llega en tres minutos.", frasePron: "u treng shéga eng tresh minútus" },
+                    { it: "Quatro", pron: "kuátru", es: "Cuatro", context: "Para contar", fraseIt: "O ônibus sai às quatro.", fraseEs: "El autobús sale a las quatro.", frasePron: "u ônibush sái ash kuátru" },
+                    { it: "Cinco", pron: "síngku", es: "Cinco", context: "Para contar", fraseIt: "Custa cinco dólares.", fraseEs: "Cuesta cinco dólares.", frasePron: "kusta síngku dólarish" },
+                    { it: "Seis", pron: "séish", es: "Seis", context: "Para contar", fraseIt: "Há seis pessoas esperando.", fraseEs: "Hay seis personas esperando.", frasePron: "a séish pessôash esperángdu" },
+                    { it: "Sete", pron: "sétchi", es: "Siete", context: "Para contar", fraseIt: "Hoje é o sétimo dia.", fraseEs: "Hoy es el séptimo día.", frasePron: "óji é u sétchimu yía" },
+                    { it: "Oito", pron: "ôitu", es: "Ocho", context: "Para contar", fraseIt: "Eu tenho oito livros.", fraseEs: "Tengo ocho libros.", frasePron: "éu tényu ôitu lívrush" },
+                    { it: "Nove", pron: "nóvi", es: "Nueve", context: "Para contar", fraseIt: "A loja fecha às nove.", fraseEs: "La tienda cierra a las nueve.", frasePron: "a lója fésha ash nóvi" },
+                    { it: "Dez", pron: "désh", es: "Diez", context: "Para contar", fraseIt: "Precisamos de dez xícaras.", fraseEs: "Necesitamos diez tazas.", frasePron: "prezisámush ji désh shíkarash" }
+                ]
+            },
+            colores: {
+                title: "Cores Essenciais",
+                desc: "Para descrever objetos e ambientes.",
+                items: [
+                    { it: "Vermelho", pron: "vermélyu", es: "Rojo", context: "Minha camisa é vermelha.", color: "#EF4444", text: "white", fraseIt: "O carro vermelho é rápido.", fraseEs: "El coche rojo es rápido.", frasePron: "u cárru vermélyu é hápidu" },
+                    { it: "Verde", pron: "vérji", es: "Verde", context: "A grama é verde.", color: "#22C55E", text: "white", fraseIt: "Verde é a minha cor favorita.", fraseEs: "El verde es mi color favorito.", frasePron: "vérji é a mñia côr favorita" },
+                    { it: "Amarelo", pron: "amarélou", es: "Amarillo", context: "A luz do sol é amarela.", color: "#FACC15", text: "black", fraseIt: "A banana é amarela.", fraseEs: "El plátano es amarillo.", frasePron: "a banana é amarélou" },
+                    { it: "Preto", pron: "prétu", es: "Negro", context: "O céu está preto à noite.", color: "#000000", text: "white", fraseIt: "Eu comprei sapatos pretos novos.", fraseEs: "Compré zapatos negros nuevos.", frasePron: "éu compréi sapátush prétush novush" },
+                    { it: "Branco", pron: "brángku", es: "Blanco", context: "A neve é branca.", color: "#FFFFFF", text: "black", border: true, fraseIt: "Ela está usando um vestido branco.", fraseEs: "Ella lleva un vestido blanco.", frasePron: "éla está usándu ung vestidu brángku" },
+                    { it: "Azul", pron: "azúl", es: "Azul", context: "O céu é azul.", color: "#3B82F6", text: "white", fraseIt: "O mar é azul profundo.", fraseEs: "El mar es azul oscuro.", frasePron: "u mar é azúl prufúndu" }
+                ]
+            },
+            animales: {
+                title: "Animais e Objetos da Casa",
+                desc: "Vocabulário para descrever seu ambiente cotidiano.",
+                items: [
+                    { it: "Cachorro", pron: "kashórru", es: "Perro", context: "Animal", icon: "🐕", fraseIt: "Eu tenho um cachorro pequeno.", fraseEs: "Tengo un perro pequeño.", frasePron: "éu tényu ung kashórru pekénu" },
+                    { it: "Gato", pron: "gátu", es: "Gato", context: "Animal", icon: "🐈", fraseIt: "O gato está dormindo na cadeira.", fraseEs: "El gato está durmiendo en la silla.", frasePron: "u gátu está dormíndu na kadeira" },
+                    { it: "Pássaro", pron: "pássaru", es: "Pájaro", context: "Animal", icon: "🐦", fraseIt: "O pássaro está cantando alto.", fraseEs: "El pájaro está cantando fuerte.", frasePron: "u pássaru está cantángdu altu" },
+                    { it: "Peixe", pron: "péishi", es: "Pez", context: "Animal", icon: "🐟", fraseIt: "Eu gosto de comer peixe.", fraseEs: "Me gusta comer pescado.", frasePron: "éu góstu ji komer péishi" },
+                    { it: "Mesa", pron: "méza", es: "Mesa", context: "Casa", icon: "🪑", fraseIt: "Ponha o livro na mesa.", fraseEs: "Pon el libro en la mesa.", frasePron: "póñia u lívru na méza" },
+                    { it: "Cama", pron: "káma", es: "Cama", context: "Casa", icon: "🛏️", fraseIt: "É hora de ir para a cama.", fraseEs: "Es hora de ir a la cama.", frasePron: "é óra ji ir pára a káma" },
+                    { it: "Janela", pron: "zhanéla", es: "Ventana", context: "Casa", icon: "🪟", fraseIt: "Por favor, feche a janela.", fraseEs: "Por favor, cierra la ventana.", frasePron: "por favôr, féshi a zhanéla" },
+                    { it: "Porta", pron: "pórta", es: "Puerta", context: "Casa", icon: "🚪", fraseIt: "A porta está aberta.", fraseEs: "La puerta está abierta.", frasePron: "a pórta está abérta" }
+                ]
+            },
+            viajes: {
+                title: "Viagem e Saúde",
+                desc: "Frases críticas para o aeroporto e emergências médicas.",
+                items: [
+                    { it: "Passaporte", pron: "passaportchi", es: "Pasaporte", context: "Aeroporto", fraseIt: "Preciso renovar meu passaporte.", fraseEs: "Necesito renovar mi pasaporte.", frasePron: "presízu henovár meu passaportchi" },
+                    { it: "Bilhete", pron: "biliétchi", es: "Boleto / Tiquete", context: "Viagem", fraseIt: "Onde posso comprar um bilhete?", fraseEs: "¿Dónde puedo comprar un boleto?", frasePron: "óndji pósu comprár ung biliétchi?" },
+                    { it: "Bagagem", pron: "bagázhen", es: "Equipaje", context: "Aeroporto", fraseIt: "Minha bagagem está muito pesada.", fraseEs: "Mi equipaje está muy pesado.", frasePron: "mínya bagázhen está múitu pezáda" },
+                    { it: "Estou doente", pron: "estou duéntchi", es: "Me siento enfermo", context: "Saúde", fraseIt: "Estou doente, eu deveria ir para casa.", fraseEs: "Me siento enfermo, debería ir a casa.", frasePron: "estou duéntchi, éu devería ir pára káza" },
+                    { it: "Preciso de um médico", pron: "presízu ji un médiku", es: "Necesito un doctor", context: "Emergência", fraseIt: "É uma emergência, preciso de um médico.", fraseEs: "Es una emergencia, necesito un doctor.", frasePron: "é uma emergénsia, presízu ji un médiku" },
+                    { it: "Socorro", pron: "sokórru", es: "Ayuda", context: "Emergência", fraseIt: "Socorro! Chame uma ambulância!", fraseEs: "¡Ayuda! ¡Llama a una ambulancia!", frasePron: "sokórru! shámi uma ambulánsia!" }
+                ]
+            },
+            clima: {
+                title: "Clima e Tempo",
+                desc: "Expressões meteorológicas e momentos do dia.",
+                items: [
+                    { it: "Está frio", pron: "está fríu", es: "Hace frío", context: "Clima", icon: "❄️", fraseIt: "Está frio lá fora hoje.", fraseEs: "Hace frío afuera hoy.", frasePron: "está fríu lá fóra óji" },
+                    { it: "Está calor", pron: "está calôr", es: "Hace calor", context: "Clima", icon: "☀️", fraseIt: "Está muito calor para caminhar.", fraseEs: "Hace demasiado calor para caminar.", frasePron: "está múitu calôr pára caminyár" },
+                    { it: "Está chovendo", pron: "está shuvéndu", es: "Está lloviendo", context: "Clima", icon: "🌧️", fraseIt: "Pegue um guarda-chuva, está chovendo.", fraseEs: "Lleva un paraguas, está lloviendo.", frasePron: "pégi ung guárda shúva, está shuvéndu" },
+                    { it: "De manhã", pron: "ji manyán", es: "Por la mañana", context: "Tempo", fraseIt: "Eu tomo café de manhã.", fraseEs: "Tomo café por la mañana.", frasePron: "éu tómu café ji manyán" },
+                    { it: "De noite", pron: "ji nóitchi", es: "Por la noche", context: "Tempo", fraseIt: "Vamos assistir um filme de noite.", fraseEs: "Veremos una película por la noche.", frasePron: "vámush assístir ung fíumi ji nóitchi" }
+                ]
+            }
+        };
+
+        // QUIZ DATA
+        function getQuizData() {
+            const allVocab = [];
+            for (const category in data) {
+                if (category !== 'home') {
+                    allVocab.push(...data[category].items);
+                }
+            }
+
+            // Shuffle function (Fisher-Yates)
+            function shuffle(array) {
+                let currentIndex = array.length, randomIndex;
+                while (currentIndex != 0) {
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+                    [array[currentIndex], array[randomIndex]] = [
+                        array[randomIndex], array[currentIndex]];
+                }
+                return array;
+            }
+
+            const shuffledVocab = shuffle(allVocab);
+            // Select 10 unique items
+            const quizItems = shuffledVocab.slice(0, 10); 
+
+            const quizQuestions = quizItems.map(item => {
+                // Correct answer is the Spanish translation (item.es)
+                const correct = item.es;
+                
+                // Get 2 incorrect options
+                let incorrectOptions = [];
+                // Filter the entire vocabulary pool to exclude the correct answer's Spanish translation
+                const pool = allVocab.filter(v => v.es !== correct);
+                const shuffledPool = shuffle(pool);
+                incorrectOptions = shuffledPool.slice(0, 2).map(v => v.es);
+
+                // Combine and shuffle options (ensure only 3 options total)
+                let options = shuffle([...incorrectOptions, correct]);
+                
+                // Create a question that requires intermediate knowledge (e.g., using the phrase)
+                let questionText = `Traduce la palabra: "${item.it}"`;
+                
+                // 50% chance to make the question harder by asking for the phrase translation
+                if (Math.random() < 0.5 && item.fraseIt && item.fraseEs) {
+                     questionText = `Si alguien dice: "${item.fraseIt}", ¿cuál es el significado más cercano?`;
+                     // We must ensure the correct answer is the phrase translation now
+                     const correctPhrase = item.fraseEs;
+
+                     // Re-generate incorrect options that are related or distractors in Spanish
+                     let distractors = [];
+                     
+                     // Use the simple word translation as one distractor
+                     distractors.push(item.es); 
+                     
+                     // Get a random different phrase translation or context from the pool
+                     const contextPool = allVocab.filter(v => v.fraseEs !== correctPhrase);
+                     const randomDistractor = shuffle(contextPool).slice(0, 1)[0];
+                     
+                     if (randomDistractor && randomDistractor.fraseEs) {
+                         distractors.push(randomDistractor.fraseEs);
+                     } else {
+                         // Fallback if no phrase is found
+                         distractors.push("No se entiende el contexto");
+                     }
+                     
+                     // Ensure unique options
+                     let uniqueOptions = [...new Set([correctPhrase, ...distractors])].slice(0, 3);
+                     
+                     // If we are missing options, fill with simple distractors
+                     while(uniqueOptions.length < 3) {
+                        const filler = shuffle(allVocab.filter(v => !uniqueOptions.includes(v.es)))[0].es;
+                        if(filler) uniqueOptions.push(filler);
+                        else break;
+                     }
+
+
+                     return {
+                        question: questionText,
+                        correctAnswer: correctPhrase,
+                        options: shuffle(uniqueOptions)
+                     };
+
+                }
+
+                // Default word translation question
+                return {
+                    question: questionText,
+                    correctAnswer: correct,
+                    options: options
+                };
+            });
+            return quizQuestions;
+        }
+
+        // Application State
+        const app = {
+            currentView: 'home',
+            visitedModules: new Set(),
+            quiz: {
+                data: [],
+                currentQuestionIndex: 0,
+                score: 0,
+                questionAnswered: false, // Flag to prevent multiple clicks
+            },
+            
+            init: function() {
+                this.setupNavigation();
+                this.renderChart();
+                this.updateProgress();
+            },
+
+            setupNavigation: function() {
+                const navBtn = document.getElementById('mobile-menu-btn');
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('overlay');
+
+                function toggleMenu() {
+                    const isClosed = sidebar.classList.contains('-translate-x-full');
+                    if (isClosed) {
+                        sidebar.classList.remove('-translate-x-full');
+                        overlay.classList.remove('hidden');
+                    } else {
+                        sidebar.classList.add('-translate-x-full');
+                        overlay.classList.add('hidden');
+                    }
+                }
+
+                navBtn.addEventListener('click', toggleMenu);
+                overlay.addEventListener('click', toggleMenu);
+            },
+
+            navigate: function(target) {
+                // Update Sidebar UI
+                document.querySelectorAll('.nav-item').forEach(btn => {
+                    if (btn.dataset.target === target) {
+                        btn.classList.add('bg-[#1A803B]', 'border-[#FFD700]');
+                        btn.classList.remove('border-transparent');
+                    } else {
+                        btn.classList.remove('bg-[#1A803B]', 'border-[#FFD700]');
+                        btn.classList.add('border-transparent');
+                    }
+                });
+
+                // Hide all views
+                document.getElementById('view-home').classList.add('hidden');
+                document.getElementById('view-cards').classList.add('hidden');
+                document.getElementById('view-quiz').classList.add('hidden');
+                
+                // Show target view
+                if (target === 'home') {
+                    document.getElementById('view-home').classList.remove('hidden');
+                } else if (target === 'quiz') {
+                    document.getElementById('view-quiz').classList.remove('hidden');
+                    this.startQuiz();
+                } else {
+                    document.getElementById('view-cards').classList.remove('hidden');
+                    this.renderCards(target);
+                    
+                    // Track Progress
+                    this.visitedModules.add(target);
+                    this.updateProgress();
+                }
+
+                // Close mobile menu if open
+                const sidebar = document.getElementById('sidebar');
+                if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                    sidebar.classList.add('-translate-x-full');
+                    document.getElementById('overlay').classList.add('hidden');
+                }
+            },
+
+            renderCards: function(categoryKey) {
+                const category = data[categoryKey];
+                document.getElementById('section-title').textContent = category.title;
+                document.getElementById('section-desc').textContent = category.desc;
+                
+                const grid = document.getElementById('cards-grid');
+                grid.innerHTML = '';
+
+                category.items.forEach(item => {
+                    // Styles for color cards vs standard cards
+                    let cardBg = 'bg-white';
+                    let textColor = 'text-[#006400]';
+                    let borderColor = 'border-gray-200';
+                    let iconHTML = item.icon ? `<div class="text-4xl mb-2">${item.icon}</div>` : '';
+                    
+                    if (item.color) {
+                        cardBg = `style="background-color: ${item.color};"`;
+                        textColor = item.text === 'white' ? 'text-white' : 'text-gray-900';
+                        if (item.border) borderColor = 'border-gray-300';
+                    }
+
+                    const card = document.createElement('div');
+                    // Add event listener to flip the card (using the group-hover utility via JS/Tailwind)
+                    card.onclick = function() {
+                        this.querySelector('.relative').classList.toggle('group-hover:rotate-y-180');
+                        this.querySelector('.relative').classList.toggle('rotate-y-180');
+                    };
+
+                    card.className = "group h-48 w-full cursor-pointer perspective-1000";
+                    
+                    // Flip Card Structure
+                    card.innerHTML = `
+                        <div class="relative h-full w-full text-center transition-transform duration-500 transform-style-3d shadow-lg rounded-xl border ${borderColor}">
+                            
+                            <!-- Front -->
+                            <div class="absolute inset-0 flex flex-col items-center justify-center backface-hidden rounded-xl ${item.color ? '' : 'bg-white'}" ${item.color ? cardBg : ''}>
+                                ${iconHTML}
+                                <h3 class="text-2xl font-bold ${textColor}">${item.it}</h3>
+                                <p class="text-sm font-semibold mt-1 ${item.color && item.text === 'white' ? 'text-white/80' : 'text-gray-600'}">${item.es}</p>
+                                <p class="font-mono text-xs mt-1 text-[#FFD700] uppercase">[${item.pron}]</p>
+                                
+                                <div class="absolute bottom-2">
+                                    <span class="bg-[#006400] text-white text-xs px-3 py-1 rounded-full shadow-md">
+                                        Ver Frase
+                                    </span>
+                                </div>
+                                <div class="absolute bottom-3 right-3 text-gray-300">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                </div>
+                            </div>
+
+                            <!-- Back (Hidden by default, shown on click) -->
+                            <div class="absolute inset-0 flex flex-col items-center justify-center backface-hidden rotate-y-180 bg-[#006400] text-white rounded-xl p-4">
+                                <p class="text-xs uppercase tracking-widest text-[#3CB371] mb-1">Frase de Ejemplo</p>
+                                <p class="text-base italic mb-2 font-light text-center">"${item.fraseIt || item.context}"</p>
+                                
+                                <!-- Phrase Pronunciation -->
+                                <p class="font-mono text-xs mt-1 text-[#FFD700] uppercase">[${item.frasePron || 'Pronunciación no disponible'}]</p>
+                                
+                                <p class="text-xs uppercase tracking-widest text-[#3CB371] mt-2 mb-1">(Significado en Español)</p>
+                                <p class="text-sm font-semibold text-[#FACC15] text-center">"${item.fraseEs || item.context}"</p>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            },
+
+            updateProgress: function() {
+                const total = 7; // Total categories (excluding home and quiz)
+                const current = this.visitedModules.size;
+                const percent = Math.min(100, Math.round((current / total) * 100));
+                
+                document.getElementById('progress-bar').style.width = `${percent}%`;
+                document.getElementById('progress-text').textContent = `${current}/${total} Temas explorados`;
+            },
+            
+            // --- QUIZ LOGIC ---
+            startQuiz: function() {
+                this.quiz.data = getQuizData();
+                this.quiz.currentQuestionIndex = 0;
+                this.quiz.score = 0;
+                this.renderQuizQuestion();
+            },
+
+            renderQuizQuestion: function() {
+                const container = document.getElementById('quiz-container');
+                const status = document.getElementById('quiz-status');
+                const question = this.quiz.data[this.quiz.currentQuestionIndex];
+
+                if (!question) {
+                    this.showQuizResults();
+                    return;
+                }
+                
+                this.quiz.questionAnswered = false; // Reset lock for new question
+
+                container.innerHTML = `
+                    <p class="text-lg font-bold mb-4">Pregunta ${this.quiz.currentQuestionIndex + 1} de ${this.quiz.data.length}</p>
+                    <p class="text-xl mb-6 font-semibold text-[#006400]">${question.question}</p>
+                    <div id="quiz-options-container" class="flex flex-col space-y-3">
+                        ${question.options.map((option, index) => `
+                            <!-- Onclick now directly calls checkAndAdvance -->
+                            <button class="quiz-option" data-option="${option}" onclick="app.checkAndAdvance(this)">
+                                ${option}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+
+                status.textContent = `Puntuación actual: ${this.quiz.score}`;
+            },
+
+            checkAndAdvance: function(element) {
+                if (this.quiz.questionAnswered) return; // Prevent multiple clicks
+
+                this.quiz.questionAnswered = true; // Lock the question immediately
+                const selectedAnswer = element.dataset.option;
+                const currentQ = this.quiz.data[this.quiz.currentQuestionIndex];
+                const isCorrect = selectedAnswer === currentQ.correctAnswer;
+                
+                if (isCorrect) {
+                    this.quiz.score++;
+                }
+
+                // Apply visual feedback to ALL options
+                document.querySelectorAll('#quiz-options-container .quiz-option').forEach(opt => {
+                    opt.onclick = null; // Disable further clicks
+                    opt.classList.remove('hover:bg-gray-200', 'bg-gray-100');
+                    
+                    if (opt.dataset.option === currentQ.correctAnswer) {
+                        // Correct answer is always green
+                        opt.classList.add('bg-green-100', 'border-2', 'border-green-500', 'shadow-lg');
+                    } else if (opt.dataset.option === selectedAnswer) {
+                        // Incorrect selection is red
+                        opt.classList.add('bg-red-100', 'border-2', 'border-red-500', 'shadow-lg');
+                    } else {
+                        // Unselected options fade out
+                        opt.classList.add('bg-gray-50', 'opacity-50'); 
+                    }
+                });
+                
+                document.getElementById('quiz-status').textContent = `Puntuación: ${this.quiz.score} (${isCorrect ? '¡Correcto!' : 'Incorrecto'})`;
+
+                // Auto-advance after 1 second
+                setTimeout(() => {
+                    this.quiz.currentQuestionIndex++;
+                    this.renderQuizQuestion();
+                }, 1000); 
+            },
+
+            showQuizResults: function() {
+                const container = document.getElementById('quiz-container');
+                const finalScore = this.quiz.score;
+                const totalQuestions = this.quiz.data.length;
+                const percentage = (finalScore / totalQuestions) * 100;
+                
+                let feedback = '';
+                if (percentage >= 80) {
+                    feedback = '¡Felicidades! Tienes un excelente dominio del vocabulario. ¡Sigue así!';
+                } else if (percentage >= 50) {
+                    feedback = '¡Buen trabajo! Estás en el camino correcto. Revisa las tarjetas que fallaste.';
+                } else {
+                    feedback = 'Necesitas un poco más de práctica. Vuelve a explorar las tarjetas de vocabulario.';
+                }
+
+                container.innerHTML = `
+                    <div class="text-center p-6">
+                        <h3 class="text-3xl font-bold text-[#006400] mb-4">Teste Concluído!</h3>
+                        <p class="text-2xl mb-4">Tu puntuación final es:</p>
+                        <p class="text-6xl font-extrabold text-[#FFD700]">${finalScore}/${totalQuestions}</p>
+                        <p class="text-lg text-gray-700 mt-2">(${percentage.toFixed(0)}%)</p>
+                        <p class="mt-6 text-xl text-gray-800 font-medium">${feedback}</p>
+                        
+                        <!-- Nuevo Llamado a la Acción -->
+                        <div class="mt-8 pt-6 border-t border-gray-200">
+                            <h4 class="text-2xl font-bold text-[#FFD700] mb-4">¡Leve seu português para o próximo nível!</h4>
+                            <p class="text-lg text-gray-700 mb-6">¿Quieres dominar estas palabras y muchas más con fluidez? Nuestro curso digital te espera.</p>
+                            <a href="https://go.hotmart.com/B103170175D" target="_blank" class="block w-full text-center bg-[#FFD700] text-[#006400] font-bold py-3 px-6 rounded-lg shadow-xl hover:bg-[#DAA520] hover:text-white transition-colors text-xl">
+                                📚 Iniciar Curso Digital
+                            </a>
+                        </div>
+                        
+                        <button onclick="app.startQuiz()" class="mt-4 bg-gray-400 text-white font-bold py-2 px-6 rounded-lg shadow-md hover:bg-gray-500 transition-colors">
+                            Reiniciar Test
+                        </button>
+                    </div>
+                `;
+                document.getElementById('quiz-next-btn').style.display = 'none';
+                document.getElementById('quiz-status').textContent = '';
+            },
+
+            // Other functions remain the same
+            renderChart: function() {
+                const ctx = document.getElementById('contentChart').getContext('2d');
+                
+                const labels = Object.keys(data).map(k => data[k].title.split(' ')[0]);
+                const counts = Object.keys(data).map(k => data[k].items.length);
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: counts,
+                            backgroundColor: [
+                                '#006400', '#1A803B', '#3CB371', '#66CDAA', 
+                                '#FFD700', '#DAA520', '#B8860B'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    boxWidth: 12,
+                                    font: { size: 10 }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return ` ${context.label}: ${context.raw} termos`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        };
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+    </script>
+    <!-- CONFIRMATION: NO SVG graphics used (only Unicode/CSS). NO Mermaid JS used. -->
 </body>
 </html>
